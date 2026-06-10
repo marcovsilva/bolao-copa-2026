@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-4 mt-8">
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Resultados Reais dos Jogos</h1>
+    
+    <div class="bg-white rounded-lg shadow-xl p-6">
+        {% if matches %}
+            <form action="{% url 'jogos' %}" method="POST" class="space-y-4">
+                {% csrf_token %}
+                
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <div class="p-3 bg-green-100 text-green-800 rounded">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% for match in matches %}
+                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg border">
+                    <div class="flex-1 text-right font-bold text-lg pr-4">
+                        {{ match.team_a.name }}
+                    </div>
+                    
+                    <div class="flex-shrink-0 px-4 py-2 bg-blue-900 text-white font-bold rounded flex items-center gap-2">
+                        {% if user.is_superuser %}
+                            <input type="number" min="0" max="20" name="score_a_{{ match.id }}" value="{{ match.score_a|default_if_none:'' }}" class="w-12 text-center text-black px-1 py-1 rounded">
+                            <span>x</span>
+                            <input type="number" min="0" max="20" name="score_b_{{ match.id }}" value="{{ match.score_b|default_if_none:'' }}" class="w-12 text-center text-black px-1 py-1 rounded">
+                        {% else %}
+                            {% if match.score_a is not None and match.score_b is not None %}
+                                {{ match.score_a }} x {{ match.score_b }}
+                            {% else %}
+                                - x -
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-1 text-left font-bold text-lg pl-4">
+                        {{ match.team_b.name }}
+                    </div>
+                </div>
+                <div class="text-center text-xs text-gray-500 mt-1 mb-4">{{ match.get_stage_display }} - {{ match.date|date:"d/m/Y H:i" }}</div>
+                {% endfor %}
+                
+                {% if user.is_superuser %}
+                <div class="mt-8 flex justify-center">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded shadow">
+                        SALVAR RESULTADOS REAIS
+                    </button>
+                </div>
+                {% endif %}
+            </form>
+        {% else %}
+            <p class="text-center text-gray-500">Nenhum jogo cadastrado ainda.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

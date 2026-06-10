@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolão Copa do Mundo 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .brand-color { background-color: #1e3a8a; }
+        .brand-text { color: #1e3a8a; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+    
+    <!-- Navbar -->
+    <header class="brand-color text-white py-4 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
+            <h1 class="text-2xl font-bold uppercase tracking-wider"><a href="{% url 'home' %}">Copa do Mundo da FIFA™ 2026</a></h1>
+            <div class="flex items-center gap-4 text-sm font-medium">
+                {% if user.is_superuser %}
+                    <a href="{% url 'ranking' %}" class="text-yellow-300 hover:underline">Ranking</a>
+                    <a href="{% url 'jogos' %}" class="text-yellow-300 hover:underline">Resultados Reais</a>
+                    <a href="/admin/" class="text-yellow-300 hover:underline font-bold" target="_blank">Painel Admin</a>
+                    <span class="border-l border-white h-4 mx-2"></span>
+                {% endif %}
+                
+                {% if user.is_authenticated %}
+                    <span>Olá, {{ user.first_name|default:user.username }}</span>
+                    <a href="{% url 'meus_palpites' %}" class="hover:underline">Meus Palpites</a>
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="hover:underline">Sair</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="hover:underline">Login</a>
+                    <a href="{% url 'register' %}" class="bg-white text-blue-900 px-4 py-2 rounded font-bold hover:bg-gray-100 transition">Cadastre-se</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Simulador da Copa do Mundo 2026</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Quem levantará a taça? Escolha os dois primeiros colocados de cada grupo e oito terceiros colocados para formar os 32 que vão para o mata-mata.
+            </p>
+        </div>
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+</body>
+</html>

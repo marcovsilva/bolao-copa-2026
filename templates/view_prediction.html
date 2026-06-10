@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex justify-between items-center border-b-2 border-gray-200 pb-2 mb-6">
+        <h3 class="text-2xl font-bold">Visualização do Palpite #{{ prediction.id }}</h3>
+        <a href="{% url 'meus_palpites' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition">
+            Voltar
+        </a>
+    </div>
+
+    <!-- Seção do Mata-Mata -->
+    <div class="mt-12 mb-8 w-full flex justify-center pb-8">
+        <div class="w-full max-w-7xl px-2">
+            <h3 class="text-3xl font-bold text-center text-gray-800 mb-8">Mata-mata</h3>
+            <div class="flex justify-center items-center gap-2 md:gap-4 w-full">
+                
+                <!-- Lado Esquerdo -->
+                <div class="flex gap-2 md:gap-4 w-1/2 justify-end">
+                    <!-- R32 -->
+                    <div class="flex flex-col justify-around gap-1 py-1">
+                        {% for i in "1234567890123456"|make_list %}
+                        <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm overflow-hidden" data-round="r32" data-index="{{ forloop.counter }}"></div>
+                        {% endfor %}
+                    </div>
+                    <!-- R16 -->
+                    <div class="flex flex-col justify-around gap-2 py-2">
+                        {% for i in "12345678"|make_list %}
+                        <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm overflow-hidden" data-round="r16" data-index="{{ forloop.counter }}"></div>
+                        {% endfor %}
+                    </div>
+                    <!-- QF -->
+                    <div class="flex flex-col justify-around gap-4 py-4">
+                        {% for i in "1234"|make_list %}
+                        <div class="bracket-node border-2 border-gray-300 rounded-full w-12 h-12 flex items-center justify-center bg-white shadow-sm overflow-hidden" data-round="qf" data-index="{{ forloop.counter }}"></div>
+                        {% endfor %}
+                    </div>
+                    <!-- SF -->
+                    <div class="flex flex-col justify-around gap-8 py-8">
+                        {% for i in "12"|make_list %}
+                        <div class="bracket-node border-2 border-gray-300 rounded-full w-16 h-16 flex items-center justify-center bg-white shadow-md overflow-hidden" data-round="sf" data-index="{{ forloop.counter }}"></div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Centro (Final e Campeão) -->
+                <div class="flex flex-col items-center justify-center px-2 md:px-4 gap-4">
+                    <div class="flex items-center gap-2 md:gap-4">
+                        <div class="bracket-node border-4 border-blue-400 rounded-full w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white shadow-lg overflow-hidden" data-round="final" data-index="1"></div>
+                        <div class="bracket-node border-4 border-yellow-400 rounded-full w-20 h-20 md:w-28 md:h-28 flex items-center justify-center bg-gray-50 shadow-inner overflow-hidden" data-round="champion" data-index="1">
+                            <span class="text-4xl md:text-5xl">🏆</span>
+                        </div>
+                        <div class="bracket-node border-4 border-blue-400 rounded-full w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white shadow-lg overflow-hidden" data-round="final" data-index="2"></div>
+                    </div>
+                </div>
+                
+                <!-- Lado Direito -->
+                <div class="flex gap-2 md:gap-4 w-1/2 justify-start">
+                    <!-- SF -->
+                    <div class="flex flex-col justify-around gap-8 py-8">
+                        {% for i in "34"|make_list %}
+                        <div class="bracket-node border-2 border-gray-300 rounded-full w-16 h-16 flex items-center justify-center bg-white shadow-md overflow-hidden" data-round="sf" data-index="{{ i }}"></div>
+                        {% endfor %}
+                    </div>
+                    <!-- QF -->
+                    <div class="flex flex-col justify-around gap-4 py-4">
+                        {% for i in "5678"|make_list %}
+                        <div class="bracket-node border-2 border-gray-300 rounded-full w-12 h-12 flex items-center justify-center bg-white shadow-sm overflow-hidden" data-round="qf" data-index="{{ i }}"></div>
+                        {% endfor %}
+                    </div>
+                    <!-- R16 -->
+                    <div class="flex flex-col justify-around gap-2 py-2">
+                        {% for i in "90123456"|make_list %}
+                        <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm overflow-hidden" data-round="r16" data-index="{{ forloop.counter|add:8 }}"></div>
+                        {% endfor %}
+                    </div>
+                    <!-- R32 -->
+                    <div class="flex flex-col justify-around gap-1 py-1">
+                        {% for i in "1234567890123456"|make_list %}
+                        <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm overflow-hidden" data-round="r32" data-index="{{ forloop.counter|add:16 }}"></div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const teamsData = {{ teams_json|safe }};
+    const bracketData = {{ bracket_json|safe }};
+    
+    // Create a dictionary for fast lookup: name -> flag_code
+    const teamDict = {};
+    teamsData.forEach(t => {
+        teamDict[t.name] = t.flag_code;
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if(!bracketData.mataMata) return;
+
+        bracketData.mataMata.forEach(nodeData => {
+            const node = document.querySelector(`.bracket-node[data-round="${nodeData.round}"][data-index="${nodeData.index}"]`);
+            if(node) {
+                if(nodeData.round === 'champion') {
+                    node.innerHTML = `
+                        <div class="flex flex-col items-center justify-center w-full h-full p-1 relative">
+                            <span class="text-4xl md:text-5xl absolute opacity-30">🏆</span>
+                            <span class="text-xs md:text-sm font-bold text-center leading-tight z-10 uppercase text-blue-900">${nodeData.time_name}</span>
+                        </div>
+                    `;
+                } else {
+                    const flagCode = teamDict[nodeData.time_name];
+                    if(flagCode) {
+                        node.innerHTML = `<img src="https://flagcdn.com/w40/${flagCode.toLowerCase()}.png" alt="Bandeira de ${nodeData.time_name}" title="${nodeData.time_name}" class="w-full h-full object-cover">`;
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

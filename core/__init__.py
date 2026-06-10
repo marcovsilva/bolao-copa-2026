@@ -1,0 +1,1 @@
+# Pacote do App Core

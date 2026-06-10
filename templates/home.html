@@ -1,0 +1,451 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-8">
+    <h3 class="text-2xl font-bold border-b-2 border-gray-200 pb-2 mb-6">Preencha os Placares e Monte seu Chaveamento</h3>
+    
+    <form id="predictionsForm" action="" method="POST">
+        {% csrf_token %}
+        <!-- Grid de Grupos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {% for g_data in groups_data %}
+            <div class="bg-white border border-gray-200 rounded shadow-sm group-container" data-group="{{ g_data.group.name }}">
+                <div class="bg-blue-900 text-white px-4 py-2 font-bold text-center border-b border-gray-200">
+                    Grupo {{ g_data.group.name }}
+                </div>
+                
+                <!-- Tabela de Classificação Dinâmica -->
+                <div class="p-2 bg-gray-50 border-b border-gray-200">
+                    <table class="w-full text-xs text-left text-gray-700 classification-table">
+                        <thead class="text-gray-500 uppercase">
+                            <tr>
+                                <th class="py-1">Seleção</th>
+                                <th class="text-center" title="Pontos">P</th>
+                                <th class="text-center" title="Vitórias">V</th>
+                                <th class="text-center" title="Empates">E</th>
+                                <th class="text-center" title="Derrotas">D</th>
+                                <th class="text-center" title="Saldo de Gols">SG</th>
+                                <th class="text-center" title="Gols Pró">GP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for time in g_data.teams %}
+                            <tr class="border-b team-row" data-team-id="{{ time.id }}" data-team-name="{{ time.name }}" data-flag="{{ time.flag_code|lower }}">
+                                <td class="py-1 font-medium flex items-center gap-1">
+                                    <span class="pos-badge text-[10px] w-3 h-3 rounded-full text-center text-white bg-gray-400">?</span>
+                                    <img src="https://flagcdn.com/w20/{{ time.flag_code|lower }}.png" alt="" class="w-4">
+                                    <span class="truncate w-16">{{ time.name }}</span>
+                                </td>
+                                <td class="text-center font-bold stat-p">0</td>
+                                <td class="text-center stat-v">0</td>
+                                <td class="text-center stat-e">0</td>
+                                <td class="text-center stat-d">0</td>
+                                <td class="text-center stat-sg">0</td>
+                                <td class="text-center stat-gp">0</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Lista de Jogos do Grupo -->
+                <div class="p-2 space-y-2 matches-container">
+                    {% for match in g_data.matches %}
+                    <div class="flex justify-between items-center text-sm match-row" data-match-id="{{ match.id }}">
+                        <div class="flex-1 text-right flex items-center justify-end gap-1" data-team-a="{{ match.team_a.id }}">
+                            <span class="truncate">{{ match.team_a.name }}</span>
+                            <img src="https://flagcdn.com/w20/{{ match.team_a.flag_code|lower }}.png" class="w-4 border">
+                        </div>
+                        <div class="flex-shrink-0 px-2 flex items-center gap-1">
+                            <input type="number" min="0" max="20" class="score-a w-10 text-center border rounded p-1 text-sm bg-gray-50 focus:bg-white" placeholder="-">
+                            <span class="text-gray-400">x</span>
+                            <input type="number" min="0" max="20" class="score-b w-10 text-center border rounded p-1 text-sm bg-gray-50 focus:bg-white" placeholder="-">
+                        </div>
+                        <div class="flex-1 text-left flex items-center gap-1" data-team-b="{{ match.team_b.id }}">
+                            <img src="https://flagcdn.com/w20/{{ match.team_b.flag_code|lower }}.png" class="w-4 border">
+                            <span class="truncate">{{ match.team_b.name }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            
+        </div>
+        
+        <!-- Seção do Mata-Mata -->
+        <div class="mt-12 mb-8 w-full flex justify-center pb-8">
+            <div class="w-full max-w-7xl px-2">
+                <h3 class="text-3xl font-bold text-center text-gray-800 mb-8">Mata-mata</h3>
+                <div class="flex justify-center items-center gap-2 md:gap-4 w-full">
+                    
+                    <!-- Lado Esquerdo -->
+                    <div class="flex gap-2 md:gap-4 w-1/2 justify-end">
+                        <!-- R32 -->
+                        <div class="flex flex-col justify-around gap-1 py-1">
+                            {% for i in "1234567890123456"|make_list %}
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="{{ forloop.counter }}"></div>
+                            {% endfor %}
+                        </div>
+                        <!-- R16 -->
+                        <div class="flex flex-col justify-around gap-2 py-2">
+                            {% for i in "12345678"|make_list %}
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r16" data-index="{{ forloop.counter }}"></div>
+                            {% endfor %}
+                        </div>
+                        <!-- QF -->
+                        <div class="flex flex-col justify-around gap-4 py-4">
+                            {% for i in "1234"|make_list %}
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-12 h-12 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="qf" data-index="{{ forloop.counter }}"></div>
+                            {% endfor %}
+                        </div>
+                        <!-- SF -->
+                        <div class="flex flex-col justify-around gap-8 py-8">
+                            {% for i in "12"|make_list %}
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-16 h-16 flex items-center justify-center bg-white shadow-md cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="sf" data-index="{{ forloop.counter }}"></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Centro (Final e Campeão) -->
+                    <div class="flex flex-col items-center justify-center px-2 md:px-4 gap-4">
+                        <div class="text-center brand-text text-[10px] md:text-xs font-bold leading-tight">Clique nas bandeiras<br>para avançar</div>
+                        <div class="flex items-center gap-2 md:gap-4">
+                            <div class="bracket-node border-4 border-blue-400 rounded-full w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white shadow-lg cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="final" data-index="1"></div>
+                            <div class="bracket-node border-4 border-yellow-400 rounded-full w-20 h-20 md:w-28 md:h-28 flex items-center justify-center bg-gray-50 shadow-inner overflow-hidden" data-round="champion" data-index="1">
+                                <span class="text-4xl md:text-5xl">🏆</span>
+                            </div>
+                            <div class="bracket-node border-4 border-blue-400 rounded-full w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white shadow-lg cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="final" data-index="2"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lado Direito -->
+                    <div class="flex gap-2 md:gap-4 w-1/2 justify-start">
+                        <!-- SF -->
+                        <div class="flex flex-col justify-around gap-8 py-8">
+                            {% for i in "34"|make_list %}
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-16 h-16 flex items-center justify-center bg-white shadow-md cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="sf" data-index="{{ i }}"></div>
+                            {% endfor %}
+                        </div>
+                        <!-- QF -->
+                        <div class="flex flex-col justify-around gap-4 py-4">
+                            {% for i in "5678"|make_list %}
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-12 h-12 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="qf" data-index="{{ i }}"></div>
+                            {% endfor %}
+                        </div>
+                        <!-- R16 -->
+                        <div class="flex flex-col justify-around gap-2 py-2">
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r16" data-index="9"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r16" data-index="10"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r16" data-index="11"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r16" data-index="12"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r16" data-index="13"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r16" data-index="14"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r16" data-index="15"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r16" data-index="16"></div>
+                        </div>
+                        <!-- R32 -->
+                        <div class="flex flex-col justify-around gap-1 py-1">
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="17"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="18"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="19"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="20"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="21"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="22"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="23"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="24"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="25"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="26"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="27"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="28"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="29"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="30"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="31"></div>
+                            <div class="bracket-node border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center bg-white shadow-sm cursor-pointer hover:bg-blue-50 transition overflow-hidden" data-round="r32" data-index="32"></div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 flex justify-center gap-4">
+            <button type="button" class="bg-gray-300 text-gray-700 font-bold py-3 px-8 rounded hover:bg-gray-400 transition text-sm" onclick="randomizeAll()">
+                PREENCHER PLACARES ALEATÓRIOS
+            </button>
+            <button type="button" class="bg-blue-600 text-white font-bold py-3 px-8 rounded shadow hover:bg-blue-700 transition text-sm" onclick="salvarPalpites()">
+                SALVAR PALPITES
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Calcula as tabelas e reordena as linhas dentro de cada grupo
+function calculateStandings() {
+    const teamsData = {};
+
+    // 1. Inicializar times
+    document.querySelectorAll('.team-row').forEach(row => {
+        const tId = row.getAttribute('data-team-id');
+        teamsData[tId] = {
+            id: tId,
+            name: row.getAttribute('data-team-name'),
+            flag: row.getAttribute('data-flag'),
+            p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0,
+            row: row,
+            group: row.closest('.group-container').getAttribute('data-group')
+        };
+    });
+
+    // 2. Calcular os jogos
+    document.querySelectorAll('.match-row').forEach(match => {
+        const tA = match.querySelector('[data-team-a]').getAttribute('data-team-a');
+        const tB = match.querySelector('[data-team-b]').getAttribute('data-team-b');
+        
+        const scoreA = match.querySelector('.score-a').value;
+        const scoreB = match.querySelector('.score-b').value;
+        
+        if(scoreA !== "" && scoreB !== "") {
+            const sa = parseInt(scoreA);
+            const sb = parseInt(scoreB);
+            
+            teamsData[tA].gp += sa;
+            teamsData[tA].gc += sb;
+            teamsData[tB].gp += sb;
+            teamsData[tB].gc += sa;
+            
+            if(sa > sb) {
+                teamsData[tA].p += 3; teamsData[tA].v += 1;
+                teamsData[tB].d += 1;
+            } else if(sa === sb) {
+                teamsData[tA].p += 1; teamsData[tA].e += 1;
+                teamsData[tB].p += 1; teamsData[tB].e += 1;
+            } else {
+                teamsData[tB].p += 3; teamsData[tB].v += 1;
+                teamsData[tA].d += 1;
+            }
+        }
+    });
+
+    // 3. Atualizar e Reordenar
+    const groupMap = {};
+    Object.values(teamsData).forEach(t => {
+        t.sg = t.gp - t.gc;
+        if(!groupMap[t.group]) groupMap[t.group] = [];
+        groupMap[t.group].push(t);
+        
+        // Atualizar HTML
+        t.row.querySelector('.stat-p').innerText = t.p;
+        t.row.querySelector('.stat-v').innerText = t.v;
+        t.row.querySelector('.stat-e').innerText = t.e;
+        t.row.querySelector('.stat-d').innerText = t.d;
+        t.row.querySelector('.stat-sg').innerText = t.sg;
+        t.row.querySelector('.stat-gp').innerText = t.gp;
+    });
+
+    // Função de ordenação
+    const sortTeams = (a, b) => {
+        if(b.p !== a.p) return b.p - a.p;
+        if(b.sg !== a.sg) return b.sg - a.sg;
+        return b.gp - a.gp;
+    };
+
+    const firsts = new Array(12).fill(null);
+    const seconds = new Array(12).fill(null);
+    const thirdsList = [];
+    let allFilledGlobal = true;
+
+    // Ordenar cada grupo
+    Object.keys(groupMap).forEach(gName => {
+        groupMap[gName].sort(sortTeams);
+        const tbody = groupMap[gName][0].row.parentNode;
+        
+        groupMap[gName].forEach((t, index) => {
+            tbody.appendChild(t.row); // Move para a posição
+            const badge = t.row.querySelector('.pos-badge');
+            badge.innerText = index + 1;
+            if(index === 0) {
+                badge.className = "pos-badge text-[10px] w-4 h-4 flex items-center justify-center rounded-full text-white bg-green-600 font-bold";
+            } else if(index === 1) {
+                badge.className = "pos-badge text-[10px] w-4 h-4 flex items-center justify-center rounded-full text-white bg-blue-500 font-bold";
+            } else if(index === 2) {
+                badge.className = "pos-badge text-[10px] w-4 h-4 flex items-center justify-center rounded-full text-white bg-yellow-500 font-bold";
+            } else {
+                badge.className = "pos-badge text-[10px] w-4 h-4 flex items-center justify-center rounded-full text-white bg-red-400 font-bold";
+            }
+        });
+
+        // Gravar 1os, 2os e 3os
+        const groupIndex = gName.charCodeAt(0) - 65; // A=0, B=1
+        const imgTmpl = (t) => `<img src="https://flagcdn.com/w40/${t.flag}.png" alt="Bandeira de ${t.name}" title="${t.name}" class="w-6 h-auto border border-gray-300 shadow-sm rounded-sm">`;
+        
+        // Verifica se o grupo inteiro foi preenchido
+        const container = groupMap[gName][0].row.closest('.group-container');
+        let groupFilled = true;
+        container.querySelectorAll('.score-a, .score-b').forEach(input => {
+            if(input.value === "") groupFilled = false;
+        });
+
+        if(groupFilled) {
+            firsts[groupIndex] = imgTmpl(groupMap[gName][0]);
+            seconds[groupIndex] = imgTmpl(groupMap[gName][1]);
+        } else {
+            allFilledGlobal = false;
+        }
+        
+        // Adiciona todos os terceiros na lista global para ordenação posterior
+        thirdsList.push(groupMap[gName][2]);
+    });
+
+    let bestThirds = new Array(8).fill(null);
+    if(allFilledGlobal) {
+        // Ordenar os terceiros para pegar os 8 melhores apenas quando TUDO estiver preenchido
+        thirdsList.sort(sortTeams);
+        bestThirds = thirdsList.slice(0, 8).map(t => `<img src="https://flagcdn.com/w40/${t.flag}.png" alt="Bandeira de ${t.name}" title="${t.name}" class="w-6 h-auto border shadow-sm">`);
+    }
+
+    updateBracketView(firsts, seconds, bestThirds);
+}
+
+function updateBracketView(firsts, seconds, thirds) {
+    // firsts[0]=1A, firsts[1]=1B... seconds[0]=2A...
+    const matchups = [
+        // Lado Esquerdo
+        firsts[4], thirds[0],       // J74: 1E vs 3º
+        firsts[8], thirds[1],       // J77: 1I vs 3º
+        seconds[0], seconds[1],     // J73: 2A vs 2B
+        firsts[5], seconds[2],      // J75: 1F vs 2C
+        seconds[10], seconds[11],   // J83: 2K vs 2L
+        firsts[7], seconds[9],      // J84: 1H vs 2J
+        firsts[3], thirds[2],       // J81: 1D vs 3º
+        firsts[6], thirds[3],       // J82: 1G vs 3º
+        
+        // Lado Direito
+        firsts[2], seconds[5],      // J76: 1C vs 2F
+        seconds[4], seconds[8],     // J78: 2E vs 2I
+        firsts[0], thirds[4],       // J79: 1A vs 3º
+        firsts[11], thirds[5],      // J80: 1L vs 3º
+        firsts[9], seconds[7],      // J86: 1J vs 2H
+        seconds[3], seconds[6],     // J88: 2D vs 2G
+        firsts[1], thirds[6],       // J85: 1B vs 3º
+        firsts[10], thirds[7]       // J87: 1K vs 3º
+    ];
+
+    const placeholders = [
+        "1E", "3º", "1I", "3º", "2A", "2B", "1F", "2C",
+        "2K", "2L", "1H", "2J", "1D", "3º", "1G", "3º",
+        "1C", "2F", "2E", "2I", "1A", "3º", "1L", "3º",
+        "1J", "2H", "2D", "2G", "1B", "3º", "1K", "3º"
+    ];
+
+    for(let i = 0; i < 32; i++) {
+        const slot = document.querySelector(`.bracket-node[data-round="r32"][data-index="${i+1}"]`);
+        if(slot) {
+            slot.innerHTML = matchups[i] || `<span class="text-[8px] text-gray-400 font-bold text-center leading-none">${placeholders[i]}</span>`;
+        }
+    }
+}
+
+// Lógica de avanço no mata-mata
+document.addEventListener('click', function(e) {
+    const node = e.target.closest('.bracket-node');
+    if(!node) return;
+    
+    const round = node.getAttribute('data-round');
+    const index = parseInt(node.getAttribute('data-index'));
+    if(!node.innerHTML.includes('img')) return; // empty slot
+
+    let nextRound, nextIndex;
+    if(round === 'r32') { nextRound = 'r16'; nextIndex = Math.ceil(index / 2); }
+    else if(round === 'r16') { nextRound = 'qf'; nextIndex = Math.ceil(index / 2); }
+    else if(round === 'qf') { nextRound = 'sf'; nextIndex = Math.ceil(index / 2); }
+    else if(round === 'sf') { nextRound = 'final'; nextIndex = Math.ceil(index / 2); }
+    else if(round === 'final') { nextRound = 'champion'; nextIndex = 1; }
+
+    if(nextRound) {
+        const nextNode = document.querySelector(`.bracket-node[data-round="${nextRound}"][data-index="${nextIndex}"]`);
+        if(nextNode) {
+            nextNode.innerHTML = node.innerHTML;
+        }
+    }
+});
+
+// Event listeners para os inputs de placar
+document.querySelectorAll('.score-a, .score-b').forEach(input => {
+    input.addEventListener('input', calculateStandings);
+});
+
+function randomizeAll() {
+    document.querySelectorAll('.score-a, .score-b').forEach(input => {
+        // Gera um placar aleatório focado entre 0 e 3, com raras exceções
+        const score = Math.floor(Math.random() * 4);
+        input.value = score;
+    });
+    calculateStandings();
+}
+
+function salvarPalpites() {
+    {% if not user.is_authenticated %}
+        window.location.href = "{% url 'login' %}";
+        return;
+    {% endif %}
+
+    // 1. Coletar os placares
+    const placares = [];
+    document.querySelectorAll('.match-row').forEach(row => {
+        const match_id = row.getAttribute('data-match-id');
+        const score_a = row.querySelector('.score-a').value;
+        const score_b = row.querySelector('.score-b').value;
+        placares.push({ match_id, score_a, score_b });
+    });
+
+    // 2. Coletar a árvore do mata-mata
+    const mataMata = [];
+    document.querySelectorAll('.bracket-node').forEach(node => {
+        const round = node.getAttribute('data-round');
+        const index = node.getAttribute('data-index');
+        
+        let time_name = '';
+        if(round === 'champion') {
+            const span = node.querySelector('span.text-xs');
+            if(span) time_name = span.innerText;
+        } else {
+            const img = node.querySelector('img');
+            if(img) time_name = img.getAttribute('title');
+        }
+        
+        if(time_name) {
+            mataMata.push({ round, index, time_name });
+        }
+    });
+
+    const payload = { placares, mataMata };
+
+    fetch("{% url 'save_prediction' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'ok') {
+            alert('Palpites salvos com sucesso!');
+            window.location.href = "{% url 'meus_palpites' %}";
+        } else {
+            alert('Erro ao salvar: ' + data.message);
+        }
+    })
+    .catch(err => {
+        alert('Erro ao se conectar com o servidor.');
+    });
+}
+
+// Inicializar na primeira carga
+document.addEventListener('DOMContentLoaded', calculateStandings);
+</script>
+{% endblock %}
